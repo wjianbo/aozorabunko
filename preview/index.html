@@ -1,35 +1,35 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
-
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta charset="UTF-8" />
   <title>今日一句｜青空文库</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
   <style>
     body {
+      margin: 0;
+      padding: 24px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f7f7f7;
       font-family:
         -apple-system,
         BlinkMacSystemFont,
         "Hiragino Mincho ProN",
-        "Hiragino Mincho Pro",
         "Yu Mincho",
         serif;
-
-      background: #f6f6f6;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
     }
 
     .card {
-      background: white;
-      padding: 24px 28px;
-      border-radius: 12px;
       width: calc(100vw - 32px);
       max-width: 480px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
     }
 
     .sentence {
@@ -44,77 +44,72 @@
       text-align: right;
     }
 
-    button {
-      margin-top: 12px;
-      padding: 8px 12px;
-      font-size: 14px;
-      background: none;
-      border: none;
-      color: #007aff;
-      cursor: pointer;
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 16px;
-        align-items: flex-start;
-      }
-
-      .card {
-        margin-top: 20vh;
-        padding: 20px;
-        border-radius: 14px;
-      }
-
-      .meta {
-        font-size: 12px;
-      }
+    .date {
+      font-size: 12px;
+      color: #999;
+      margin-top: 8px;
+      text-align: right;
     }
 
     @media (prefers-color-scheme: dark) {
-      body {
-        background: #121212;
-      }
-
+      body { background: #121212; }
       .card {
         background: #1e1e1e;
         color: #eee;
         box-shadow: none;
       }
-
-      .meta {
-        color: #aaa;
-      }
+      .meta, .date { color: #aaa; }
     }
   </style>
 </head>
 
 <body>
-
   <div class="card">
-    <div class="sentence" id="sentence">加载中…</div>
+    <div class="sentence" id="sentence">読み込み中…</div>
     <div class="meta" id="meta"></div>
-    <button onclick="showRandom()">换一句</button>
+    <div class="date" id="date"></div>
   </div>
 
-  <script>
-    let quotes = [];
+<script>
+/* ========= 日期（JST） ========= */
+function todaySeedJST() {
+  const now = new Date();
+  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  return jst.toISOString().slice(0, 10);
+}
 
-    fetch('quotes.json')
-      .then(res => res.json())
-      .then(data => {
-        quotes = data;
-        showRandom();
-      });
+/* ========= 稳定 hash ========= */
+function hash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (h << 5) - h + str.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
 
-    function showRandom() {
-      if (!quotes.length) return;
-      const q = quotes[Math.floor(Math.random() * quotes.length)];
-      document.getElementById('sentence').innerText = q.first_sentence;
-      document.getElementById('meta').innerText = `${q.author}《${q.title}》`;
-    }
-  </script>
+/* ========= 选今日一句 ========= */
+function pickTodayQuote(quotes) {
+  const seed = todaySeedJST();
+  const index = hash(seed) % quotes.length;
+  return { quote: quotes[index], seed };
+}
 
+/* ========= 加载并渲染 ========= */
+fetch('./quotes.json')
+  .then(res => res.json())
+  .then(quotes => {
+    const { quote, seed } = pickTodayQuote(quotes);
+
+    document.getElementById('sentence').textContent = quote.text;
+    document.getElementById('meta').textContent =
+      `${quote.author}《${quote.work}》`;
+    document.getElementById('date').textContent = seed;
+  })
+  .catch(err => {
+    document.getElementById('sentence').textContent = '読み込みに失敗しました。';
+    console.error(err);
+  });
+</script>
 </body>
-
 </html>
