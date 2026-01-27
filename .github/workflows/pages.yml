@@ -3,6 +3,7 @@ name: Deploy Pages
 on:
   push:
     branches: [ feature/daily-quote-preview ]
+  workflow_dispatch:
 
 permissions:
   contents: read
