@@ -1,10 +1,14 @@
 from pathlib import Path
 import json
 import re
-from datetime import datetime
+from datetime import datetime, date
+import argparse
+import hashlib
 
 ROOT = Path("cards")
-OUTPUT = Path("preview/quotes.json")
+QUOTES_OUTPUT = Path("preview/quotes.json")
+DAILY_OUTPUT = Path("preview/daily.json")
+
 MAX_FILES = 20000000  # 开发时
 
 MAIN_TEXT_START = '<div class="main_text">'
@@ -35,6 +39,7 @@ def extract_first_sentence_fast(html: str):
         return None
 
     return body[: idx + 1]
+
 
 def extract_title_and_author(html: str):
     title = None
@@ -78,7 +83,10 @@ def build_quote_item(sentence: str, path: Path, title: str, author_name: str):
     }
 
 
-def main():
+# -------------------------
+# 1️⃣ 低频：构建 quotes.json
+# -------------------------
+def build_quotes():
     quotes = []
     scanned = 0
 
@@ -103,7 +111,6 @@ def main():
             )
         )
 
-
     output = {
         "meta": {
             "schema_version": 1,
@@ -117,10 +124,62 @@ def main():
     print(f"Scanned html files: {scanned}")
     print(f"Collected candidates: {len(quotes)}")
 
-    OUTPUT.write_text(
+    QUOTES_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    QUOTES_OUTPUT.write_text(
         json.dumps(output, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
+
+
+# -------------------------
+# 2️⃣ 高频：每日生成 daily.json
+# -------------------------
+def generate_daily():
+    data = json.loads(QUOTES_OUTPUT.read_text(encoding="utf-8"))
+    quotes = data["quotes"]
+
+    if not quotes:
+        raise RuntimeError("quotes.json is empty")
+
+    today = date.today().isoformat()
+    h = hashlib.sha256(today.encode()).hexdigest()
+    index = int(h, 16) % len(quotes)
+
+    q = quotes[index]
+
+    daily = {
+        "date": today,
+        "quote": {
+            "id": q["id"],
+            "text": q["text"],
+            "author": q["author"]["name"],
+            "title": q["work"]["title"],
+        }
+    }
+
+    DAILY_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    DAILY_OUTPUT.write_text(
+        json.dumps(daily, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+# -------------------------
+# 3️⃣ 入口：用参数控制
+# -------------------------
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--build",
+        action="store_true",
+        help="Rebuild quotes.json from HTML files"
+    )
+    args = parser.parse_args()
+
+    if args.build or not QUOTES_OUTPUT.exists():
+        build_quotes()
+
+    generate_daily()
 
 
 if __name__ == "__main__":
