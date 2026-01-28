@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
   <meta charset="UTF-8" />
   <title>今日一句｜青空文库</title>
@@ -8,14 +7,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
   <style>
+    /* ========= 基础 ========= */
+    html, body {
+      height: 100%;
+    }
+
     body {
       margin: 0;
       padding: 24px;
-      min-height: 100vh;
+      box-sizing: border-box;
+
       display: flex;
       justify-content: center;
       align-items: center;
+
       background: #f7f7f7;
+      overflow: hidden;
+
       font-family:
         -apple-system,
         BlinkMacSystemFont,
@@ -24,34 +32,46 @@
         serif;
     }
 
+    /* ========= 卡片 ========= */
     .card {
-      width: calc(100vw - 32px);
+      width: 100%;
       max-width: 480px;
-      background: white;
+
+      background: #ffffff;
       padding: 24px;
       border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+
+      display: flex;
+      flex-direction: column;
     }
 
+    /* ========= 日期（页面状态） ========= */
+    .today {
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 14px;
+      letter-spacing: 0.02em;
+    }
+
+    /* ========= 正文 ========= */
     .sentence {
       font-size: clamp(16px, 4.5vw, 19px);
-      line-height: 1.7;
-      margin-bottom: 16px;
+      line-height: 1.75;
+      margin-bottom: 20px;
+      white-space: pre-wrap;
     }
 
+    /* ========= 作者 / 作品 ========= */
     .meta {
+      margin-top: auto;
       font-size: 13px;
       color: #666;
       text-align: right;
     }
 
-    .date {
-      font-size: 12px;
-      color: #999;
-      margin-top: 8px;
-      text-align: right;
-    }
-
+    /* ========= 深色模式 ========= */
     @media (prefers-color-scheme: dark) {
       body {
         background: #121212;
@@ -63,8 +83,11 @@
         box-shadow: none;
       }
 
-      .meta,
-      .date {
+      .today {
+        color: #888;
+      }
+
+      .meta {
         color: #aaa;
       }
     }
@@ -73,12 +96,16 @@
 
 <body>
   <div class="card">
-    <div class="sentence" id="sentence">読み込み中…</div>
+    <div class="today" id="date">—</div>
+
+    <div class="sentence" id="sentence">
+      読み込み中…
+    </div>
+
     <div class="meta" id="meta"></div>
-    <div class="date" id="date"></div>
   </div>
 
-  <script>
+<script>
     fetch('./daily.json')
       .then(res => res.json())
       .then(data => {
@@ -86,15 +113,13 @@
 
         document.getElementById('sentence').textContent = q.text;
         document.getElementById('meta').textContent =
-          `${q.author}《${q.title}》`;
-        document.getElementById('date').textContent = data.date;
+          `${q.author}『${q.title}』`;
+        document.getElementById('date').textContent = `今日の一句 · ${data.date}`;
       })
       .catch(err => {
         document.getElementById('sentence').textContent = '読み込みに失敗しました。';
         console.error(err);
       });
   </script>
-
 </body>
-
 </html>
