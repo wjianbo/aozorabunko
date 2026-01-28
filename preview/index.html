@@ -70,46 +70,57 @@
     <div class="date" id="date"></div>
   </div>
 
-<script>
-/* ========= 日期（JST） ========= */
-function todaySeedJST() {
-  const now = new Date();
-  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  return jst.toISOString().slice(0, 10);
-}
+  <script>
+    /* ========= 日期（JST） ========= */
+    function todaySeedJST() {
+      const now = new Date();
+      const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+      return jst.toISOString().slice(0, 10);
+    }
+    
+    /* ========= 稳定 hash ========= */
+    function hash(str) {
+      let h = 0;
+      for (let i = 0; i < str.length; i++) {
+        h = (h << 5) - h + str.charCodeAt(i);
+        h |= 0;
+      }
+      return Math.abs(h);
+    }
+    
+    /* ========= 选今日一句 ========= */
+    function pickTodayQuote(quotes) {
+      const seed = todaySeedJST();
+      const index = hash(seed) % quotes.length;
+      return { quote: quotes[index], seed };
+    }
+    
+    /* ========= 加载并渲染 ========= */
+    fetch('./quotes.json')
+      .then(res => res.json())
+      .then(data => {
+        const quotes = data.quotes;
+        if (!quotes || quotes.length === 0) {
+          throw new Error('No quotes available');
+        }
+    
+        const { quote, seed } = pickTodayQuote(quotes);
+    
+        document.getElementById('sentence').textContent = quote.text;
+    
+        const author = quote.author?.name || '作者不详';
+        const title  = quote.work?.title || '无题';
+    
+        document.getElementById('meta').textContent =
+          `${author}《${title}》`;
+    
+        document.getElementById('date').textContent = seed;
+      })
+      .catch(err => {
+        document.getElementById('sentence').textContent = '読み込みに失敗しました。';
+        console.error(err);
+      });
+    </script>
 
-/* ========= 稳定 hash ========= */
-function hash(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) {
-    h = (h << 5) - h + str.charCodeAt(i);
-    h |= 0;
-  }
-  return Math.abs(h);
-}
-
-/* ========= 选今日一句 ========= */
-function pickTodayQuote(quotes) {
-  const seed = todaySeedJST();
-  const index = hash(seed) % quotes.length;
-  return { quote: quotes[index], seed };
-}
-
-/* ========= 加载并渲染 ========= */
-fetch('./quotes.json')
-  .then(res => res.json())
-  .then(quotes => {
-    const { quote, seed } = pickTodayQuote(quotes);
-
-    document.getElementById('sentence').textContent = quote.text;
-    document.getElementById('meta').textContent =
-      `${quote.author}《${quote.work}》`;
-    document.getElementById('date').textContent = seed;
-  })
-  .catch(err => {
-    document.getElementById('sentence').textContent = '読み込みに失敗しました。';
-    console.error(err);
-  });
-</script>
 </body>
 </html>
