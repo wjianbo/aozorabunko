@@ -61,15 +61,30 @@
 
     /* ========= 正文 ========= */
     .sentence {
+      font-family: "Noto Serif JP", serif;
+
       font-size: clamp(16px, 4.5vw, 19px);
-      margin-bottom: 20px;
-      white-space: pre-wrap;
-      letter-spacing: 0.02em;
-      line-height: 1.8;
+      line-height: 1.85;
+      letter-spacing: 0.035em;
+
       font-weight: 400;
-      font-family:
-        "Noto Serif JP",
-        serif;
+      text-align: left;
+
+      word-break: break-word;
+      hyphens: auto;
+    }
+
+    @supports (-webkit-touch-callout: none) {
+      .sentence {
+        letter-spacing: 0.04em;
+        line-height: 1.9;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .sentence {
+        color: #e6e6e6;
+      }
     }
 
     /* ========= 作者 / 作品 ========= */
