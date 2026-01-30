@@ -76,6 +76,11 @@
       hyphens: auto;
     }
 
+    .sentence ruby {
+      margin: 0 0.05em;
+    }
+
+
     @supports (-webkit-touch-callout: none) {
       .sentence {
         letter-spacing: 0.04em;
@@ -120,6 +125,24 @@
         color: #aaa;
       }
     }
+
+    /* ========= Ruby 注音 ========= */
+    ruby {
+      ruby-position: over;
+      ruby-align: center;
+    }
+
+    rt {
+      font-size: 0.55em;
+      letter-spacing: 0.05em;
+      color: #777;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      rt {
+        color: #aaa;
+      }
+    }
   </style>
 </head>
 
@@ -140,7 +163,7 @@
       .then(data => {
         const q = data.quote;
 
-        document.getElementById('sentence').textContent = q.text;
+        document.getElementById('sentence').innerHTML = q.text;
         document.getElementById('meta').textContent =
           `${q.author}『${q.title}』`;
         document.getElementById('date').textContent = `今日の一句 · ${data.date}`;

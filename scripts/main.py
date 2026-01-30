@@ -36,7 +36,8 @@ def extract_first_sentence_fast(html: str):
         return None
 
     body = html[start + len(MAIN_TEXT_START): end]
-    body = TAG_STRIP_RE.sub("", body)
+    # 只去掉换行 / 段落 / 注记类标签
+    body = re.sub(r"</?(p|br|div)[^>]*>", "", body)
     body = body.replace("&nbsp;", "").strip()
     body = body.lstrip("　")
 
