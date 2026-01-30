@@ -18,7 +18,13 @@ TITLE_RE = re.compile(r'<h1 class="title">(.+?)</h1>')
 AUTHOR_RE = re.compile(r'<h2 class="author">(.+?)</h2>')
 
 TAG_RE = re.compile(r"<[^>]+>")
+# 允许保留的标签
+ALLOWED_TAGS = ("ruby", "rb", "rt", "rp")
 
+TAG_STRIP_RE = re.compile(
+    r"</?(?!(" + "|".join(ALLOWED_TAGS) + r")\b)[^>]+>",
+    re.IGNORECASE,
+)
 
 def extract_first_sentence_fast(html: str):
     start = html.find(MAIN_TEXT_START)
@@ -30,7 +36,7 @@ def extract_first_sentence_fast(html: str):
         return None
 
     body = html[start + len(MAIN_TEXT_START): end]
-    body = TAG_RE.sub("", body)
+    body = TAG_STRIP_RE.sub("", body)
     body = body.replace("&nbsp;", "").strip()
     body = body.lstrip("　")
 
