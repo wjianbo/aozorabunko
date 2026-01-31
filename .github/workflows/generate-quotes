@@ -1,0 +1,37 @@
+name: Generate quotes.json
+
+on:
+  workflow_dispatch: # 允许手动执行
+
+permissions:
+  contents: write
+
+jobs:
+  update-daily:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate quotes.json
+        run: |
+          python scripts/main.py --build
+
+      - name: Commit if changed
+        run: |
+          git status --porcelain
+          if [ -n "$(git status --porcelain preview/quotes.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add preview/quotes.json
+            git commit -m "chore: generate quotes.json"
+            git push
+          else
+            echo "No changes to quotes.json"
+          fi
