@@ -27,6 +27,41 @@ TAG_STRIP_RE = re.compile(
     re.IGNORECASE,
 )
 
+def strip_leading_section_marks(text: str) -> str:
+    """
+    去掉开头的章节号 / 小标题，如：
+    一
+    二
+    第三
+    其一
+    序
+    后面跟着空行或全角空格的情况
+    """
+    lines = text.splitlines()
+
+    # 去掉开头的空行
+    while lines and not lines[0].strip():
+        lines.pop(0)
+
+    if not lines:
+        return text
+
+    first = lines[0].strip()
+
+    # 典型章节标记
+    if re.fullmatch(r"[一二三四五六七八九十百千]+", first):
+        lines.pop(0)
+    elif re.fullmatch(r"第[一二三四五六七八九十百千]+", first):
+        lines.pop(0)
+    elif first in {"序", "序文", "前書き", "はじめに", "其一", "其二"}:
+        lines.pop(0)
+
+    # 再次清理前导空行
+    while lines and not lines[0].strip():
+        lines.pop(0)
+
+    return "\n".join(lines)
+
 def extract_first_sentence_fast(html: str):
     start = html.find(MAIN_TEXT_START)
     if start == -1:
@@ -39,7 +74,11 @@ def extract_first_sentence_fast(html: str):
     body = html[start + len(MAIN_TEXT_START): end]
     # 只去掉换行 / 段落 / 注记类标签
     body = re.sub(r"</?(p|br|div)[^>]*>", "", body)
-    body = body.replace("&nbsp;", "").strip()
+    body = body.replace("&nbsp;", "")
+    
+    body = strip_leading_section_marks(body)
+
+    body = body.strip()
     body = body.lstrip("　")
 
     idx = body.find("。")
