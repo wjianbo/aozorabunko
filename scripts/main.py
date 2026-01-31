@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 import re
 from datetime import datetime, date
+from zoneinfo import ZoneInfo
 import argparse
 import hashlib
 
@@ -148,7 +149,7 @@ def generate_daily():
     if not quotes:
         raise RuntimeError("quotes.json is empty")
 
-    today = date.today().isoformat()
+    today = datetime.now(ZoneInfo("Asia/Tokyo")).date().isoformat()
     h = hashlib.sha256(today.encode()).hexdigest()
     index = int(h, 16) % len(quotes)
 
