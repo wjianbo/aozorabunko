@@ -1,6 +1,10 @@
 name: Deploy Pages
 
 on:
+  workflow_run:
+    workflows: ["Update daily quote"]
+    types:
+      - completed
   push:
     branches: [ feature/daily-quote-preview ]
   workflow_dispatch:
