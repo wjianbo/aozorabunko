@@ -158,17 +158,17 @@
   </div>
 
   <script>
-    function normalizeAozoraText(text) {
-      return text
-        // 踊り字：／″＼ → 重复前一个假名
-        .replace(/([ぁ-んァ-ン一-龥])／″＼/g, (_, ch) => ch + ch)
-    }
+function normalizeAozoraSymbols(text) {
+  return text
+    .replace(/／″＼/g, "〲")
+    .replace(/／＼/g, "〱");
+}
     fetch('./daily.json')
       .then(res => res.json())
       .then(data => {
         const q = data.quote;
 
-        document.getElementById('sentence').innerHTML = normalizeAozoraText(q.text);
+        document.getElementById('sentence').innerHTML = normalizeAozoraSymbols(q.text);
         document.getElementById('meta').textContent =
           `${q.author}『${q.title}』`;
         document.getElementById('date').textContent = `今日の一句 · ${data.date}`;
